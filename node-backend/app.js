@@ -10,7 +10,8 @@ var port = 6200;
 // Connection to DB
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://mongodb:27017/mern_stack', {
+// mongoose.connect('mongodb://localhost:27017/mern_stack', { // local development
+mongoose.connect('mongodb://mongodb:27017/mern_stack', { // production development
   useNewUrlParser: true,
   user: 'ervina',
   pass: 'uNVTniFHqkcxOmPDuzxX'

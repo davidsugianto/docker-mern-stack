@@ -12,6 +12,7 @@ services:
     container_name: mongodb
     restart: always
     environment:
+      - TZ=${TIMEZONE}
       - MONGO_INITDB_DATABASE=mern_stack
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=ifjMCRIaeJArKcy
@@ -24,48 +25,52 @@ services:
       - app-tier
 
   backend:
-    build: ./node-backend/
+    build: ./node-backend/docker/
     container_name: backend
     restart: always
+    environment:
+      - 'TZ=${TIMEZONE}'
     ports:
       - "6200:6200"
     volumes:
-      - ./node-backend:/usr/src/app
+      - ./node-backend:/app:rw
     depends_on:
       - mongodb
     networks:
       - app-tier
 
   frontend:
-    build: ./react-frontend/
+    build: ./react-frontend/docker/
     container_name: frontend
     restart: always
-    ports:
-      - "3000:3000"
+    environment:
+      - 'TZ=${TIMEZONE}'
+    expose:
+      - '3000'
     volumes:
-      - ./react-frontend:/usr/src/app
+      - ./react-frontend:/app:rw
     depends_on:
       - backend
     networks:
       - app-tier
 
-  # httpd:
-  #   container_name: nginx
-  #   image: bitnami/nginx:${NGINX_VERSION}-${OS_VERSION}
-  #   restart: always
-  #   environment:
-  #     - 'TZ=${TIMEZONE}'
-  #   depends_on:
-  #     - frontend
-  #   networks:
-  #     - app-tier
-  #   ports:
-  #     - '80:8080'
-  #     - '443:8443'
-  #   volumes:
-  #     - ./config/nginx/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf:ro
-  #     - ./config/nginx/vhost/test.conf:/opt/bitnami/nginx/conf/vhosts/test.conf:ro
-  #     - ./logs/nginx/${NGINX_VERSION}:/opt/bitnami/nginx/logs:rw
-  #     - ./public-html:/app:rw
+  httpd:
+    container_name: nginx
+    image: bitnami/nginx:${NGINX_VERSION}-${OS_VERSION}
+    user: root:root
+    restart: always
+    environment:
+      - 'TZ=${TIMEZONE}'
+    depends_on:
+      - frontend
+    networks:
+      - app-tier
+    ports:
+      - '80:8080'
+      - '443:8443'
+    volumes:
+      - ./config/nginx/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf:rw
+      - ./config/nginx/vhost/app.conf:/opt/bitnami/nginx/conf/vhosts/app.conf:rw
+      - ./logs/nginx/${NGINX_VERSION}:/opt/bitnami/nginx/logs:rw  
   
   
